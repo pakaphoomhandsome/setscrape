@@ -1,0 +1,20 @@
+{
+  "name": "Webscrape",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.16.2",
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "node-cron": "^3.0.3",
+    "prisma": "^5.16.2",
+    "puppeteer": "^22.13.0"
+  }
+}
