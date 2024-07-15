@@ -32,7 +32,6 @@ httpServer.listen(process.env.PORT, function () {
 
 app.get('/', async (req, res) => {
   try {
-    console.log();
     res.send('API SYSTEM');
   } catch (err) {
     console.log('Internal Error 500', err);
@@ -42,11 +41,10 @@ app.get('/', async (req, res) => {
 
 const { runWebScrape } = require('./controllers/webscrape.controller');
 
-cron.schedule('*/30 * * * * *', async () => {
-  await runWebScrape();
-  console.log('Running a task every 10 seconds');
+cron.schedule('0 1 * * *', async () => {
+    await runWebScrape();
+    console.log('Running a task every day at 1 AM');
 });
-
 const scrapeRouter = require("./routes/webscrape.route");
 
 

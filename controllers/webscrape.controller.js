@@ -104,18 +104,6 @@ const runWebScrape = async () => {
             }
         });
 
-        if (!existingDate) {
-            await prisma.stock.create({
-                data: {
-                    date: scrappedData.date,
-                    data: scrappedData.data
-                }
-            });
-            console.log('Data Inserted!');
-        } else {
-            console.log('No Data Inserted!');
-        }
-
         function checkChange(value) {
             const changeValue = parseFloat(value);
           
@@ -126,53 +114,66 @@ const runWebScrape = async () => {
             return changeValue > 0;
         }
 
-        for (const thisData of scrappedData.data) {
-
-            const thisDataCount = await prisma.count.findFirst({
-                where: {
-                    symbol: thisData.symbol
+        if (!existingDate) {
+            await prisma.stock.create({
+                data: {
+                    date: scrappedData.date,
+                    data: scrappedData.data
                 }
             });
 
-            if (checkChange(thisData.change)) {
-                // ค่าบวก
-                if (thisDataCount) {
-                    await prisma.count.delete({
-                        where: {
-                            id: thisDataCount.id
-                        }
-                    });
-                }
-            } else {
-                // ค่าลบ
-                if (thisDataCount) {
-                    if (Number(thisDataCount.count) + 1 >= 3 && thisData.symbol && thisData.symbol !== '') {
-                        await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 3 ครั้งแล้ว กรุณาตรวจสอบ`);
+            for (const thisData of scrappedData.data) {
+    
+                const thisDataCount = await prisma.count.findFirst({
+                    where: {
+                        symbol: thisData.symbol
                     }
-                    
-                    if (Number(thisDataCount.count) + 1 >= 4 && thisData.symbol && thisData.symbol !== '') {
-                        await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 4 ครั้งแล้ว กรุณาตรวจสอบ`);
-                    }
-
-                    await prisma.count.update({
-                        where: {
-                            id: thisDataCount.id
-                        },
-                        data: {
-                            count: {
-                                increment: 1
+                });
+    
+                if (checkChange(thisData.change)) {
+                    // ค่าบวก
+                    if (thisDataCount) {
+                        await prisma.count.delete({
+                            where: {
+                                id: thisDataCount.id
                             }
-                        }
-                    });
+                        });
+                    }
                 } else {
-                    await prisma.count.create({
-                        data: {
-                            symbol: thisData.symbol,
-                            count: 1
+                    // ค่าลบ
+                    if (thisDataCount) {
+                        if (Number(thisDataCount.count) + 1 >= 3 && thisData.symbol && thisData.symbol !== '') {
+                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 3 ครั้งแล้ว กรุณาตรวจสอบ`);
                         }
-                    });
+                        
+                        if (Number(thisDataCount.count) + 1 >= 4 && thisData.symbol && thisData.symbol !== '') {
+                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 4 ครั้งแล้ว กรุณาตรวจสอบ`);
+                        }
+    
+                        await prisma.count.update({
+                            where: {
+                                id: thisDataCount.id
+                            },
+                            data: {
+                                count: {
+                                    increment: 1
+                                }
+                            }
+                        });
+                    } else {
+                        await prisma.count.create({
+                            data: {
+                                symbol: thisData.symbol,
+                                count: 1
+                            }
+                        });
+                    }
                 }
             }
+
+            console.log('Data Inserted!');
+        } else {
+            console.log('No Data Inserted!');
         }
 
     } catch (err) {
