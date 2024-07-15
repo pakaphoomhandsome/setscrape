@@ -108,10 +108,10 @@ const runWebScrape = async () => {
             const changeValue = parseFloat(value);
           
             if (isNaN(changeValue)) {
-              return false;
+              return true;
             }
           
-            return changeValue > 0;
+            return changeValue >= 0;
         }
 
         if (!existingDate) {
@@ -143,11 +143,7 @@ const runWebScrape = async () => {
                     // ค่าลบ
                     if (thisDataCount) {
                         if (Number(thisDataCount.count) + 1 >= 3 && thisData.symbol && thisData.symbol !== '') {
-                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 3 ครั้งแล้ว กรุณาตรวจสอบ`);
-                        }
-                        
-                        if (Number(thisDataCount.count) + 1 >= 4 && thisData.symbol && thisData.symbol !== '') {
-                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ 4 ครั้งแล้ว กรุณาตรวจสอบ`);
+                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ ${Number(thisDataCount.count) + 1} ครั้งแล้ว กรุณาตรวจสอบ`);
                         }
     
                         await prisma.count.update({
