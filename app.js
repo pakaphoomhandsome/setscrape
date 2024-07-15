@@ -39,6 +39,18 @@ app.get('/', async (req, res) => {
   }
 });
 
+const { sendMsgController } = require('./controllers/sendlinemsg.controller');
+
+app.get('/welcome', async (req, res) => {
+    try {
+        await sendMsgController('ยินดีต้อนรับเข้าสู่แอพพลิเคชั่น เศรษฐีภควัต ฉันจะรายงานคุณทุก 1 ทุ่มเมื่อมีการเปลี่ยนแปลงหุ้น แอพนี้สร้างโดย ภคภูมิสุดหล่อ');
+        res.status(200).send({ isError: false });
+    } catch (err) {
+      console.log('Internal Error 500', err);
+      res.status(500).send('Internal Server Error');
+    }
+});
+
 const { runWebScrape } = require('./controllers/webscrape.controller');
 
 cron.schedule('0 1 * * *', async () => {
