@@ -168,8 +168,10 @@ const runWebScrape = async () => {
             }
 
             console.log('Data Inserted!');
+            await sendMsgController('ทำการเช็คข้อมูลใหม่เรียบร้อย: เพิ่มข้อมูลลงฐานข้อมูลแล้ว');
         } else {
             console.log('No Data Inserted!');
+            await sendMsgController('ทำการเช็คข้อมูลใหม่เรียบร้อย: ไม่มีข้อมูลใหม่');
         }
 
     } catch (err) {
