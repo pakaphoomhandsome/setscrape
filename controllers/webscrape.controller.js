@@ -107,7 +107,15 @@ const test = async (req, res) => {
     }
 }
 
-
+const testNotify = async (req, res) => {
+    try {
+        const scrappedData = await scrapeData();
+        res.status(200).json({ isError: false, scrappedData });
+    } catch (err) {
+        res.status(500).json({ isError: true, msg: 'Internal Server Error 500' });
+        console.log(err);
+    }
+}
 
 const insertData = async (req, res) => {
     try {
@@ -206,6 +214,25 @@ const insertData = async (req, res) => {
     }
 }
 
+const notify = async () => {
+    const count = await prisma.count.findMany();
+    const filteredOver3Days = count.filter(e => e.count >= 3 && e.symbol !== '');
+
+    if (filteredOver3Days.length > 0) {
+        // สร้างข้อความทั้งหมดที่ต้องการส่ง
+        let message = `=== รายการแจ้งเตือนหุ้นติดลบ ประจำวันที่ ${new Date().toLocaleDateString()} ===\n\n`;
+
+        for (const thisAlert of filteredOver3Days) {
+            message += `- หุ้น ${thisAlert.symbol} ได้ติดต่อกันครบ ${thisAlert.count} ครั้ง\n`;
+        }
+
+        message += '\nกรุณาตรวจสอบรายการดังกล่าว';
+
+        // ส่งข้อความเดียว
+        await sendMsgController(message);
+    }
+}
+
 const runWebScrape = async () => {
     try {
         const scrappedData = await scrapeData();
@@ -240,10 +267,9 @@ const runWebScrape = async () => {
                 }
             });
 
-            for (const thisData of scrappedData.data) {
+            let message = `=== รายการแจ้งเตือนหุ้นพ้นจากการติดลบ ประจำวันที่ ${new Date().toLocaleDateString()} ===\n\n`;
 
-                console.log(thisData);
-    
+            for (const thisData of scrappedData.data) {
                 const thisDataCount = await prisma.count.findFirst({
                     where: {
                         symbol: thisData.symbol
@@ -253,8 +279,7 @@ const runWebScrape = async () => {
                 if (checkChange(Number(thisData.last) - Number(thisData.open))) {
                     // ค่าบวก
                     if (thisDataCount) {
-                        console.log(`ขณะนี้หุ้น ${thisData.symbol} พ้นจากการลบติดต่อกันแล้ว`);
-                        await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} พ้นจากการลบติดต่อกันแล้ว`);
+                        message += `- ขณะนี้หุ้น ${thisData.symbol} พ้นจากการลบติดต่อกันแล้ว\n`;
                         await prisma.count.delete({
                             where: {
                                 id: thisDataCount.id
@@ -264,10 +289,6 @@ const runWebScrape = async () => {
                 } else {
                     // ค่าลบ
                     if (thisDataCount) {
-                        if (Number(thisDataCount.count) + 1 >= 3 && thisData.symbol && thisData.symbol !== '') {
-                            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} ได้ติดต่อกันครบ ${Number(thisDataCount.count) + 1} ครั้งแล้ว กรุณาตรวจสอบ`);
-                        }
-    
                         await prisma.count.update({
                             where: {
                                 id: thisDataCount.id
@@ -289,6 +310,11 @@ const runWebScrape = async () => {
                 }
             }
 
+            message += '\nกรุณาตรวจสอบรายการดังกล่าว';
+            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} พ้นจากการลบติดต่อกันแล้ว`);
+
+            await notify();
+
             console.log('Data Inserted!');
             await sendMsgController('ทำการเช็คข้อมูลใหม่เรียบร้อย: เพิ่มข้อมูลลงฐานข้อมูลแล้ว');
         } else {
@@ -305,5 +331,6 @@ module.exports = {
     scrapeData,
     test,
     runWebScrape,
-    insertData
+    insertData,
+    testNotify
 };
