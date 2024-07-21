@@ -53,8 +53,8 @@ app.get('/welcome', async (req, res) => {
 
 const { runWebScrape } = require('./controllers/webscrape.controller');
 
-cron.schedule('0 1 * * *', async () => {
-    await runWebScrape();
+cron.schedule('*/20 * * * * *', async () => {
+    // await runWebScrape();
     console.log('Running a task every day at 1 AM');
 });
 const scrapeRouter = require("./routes/webscrape.route");

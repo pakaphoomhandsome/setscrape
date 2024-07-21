@@ -7,13 +7,29 @@ const moment = require('moment-timezone');
 const { sendMsgController } = require('./sendlinemsg.controller');
 
 async function scrapeData() {
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
   
     try {
         // Navigate to the page
         await page.goto('https://www.settrade.com/th/equities/market-data/overview', { waitUntil: 'networkidle0' });
-  
+        
+        const scrollToBottom = async () => {
+            await page.evaluate(async () => {
+                const distance = 100; // How many pixels to scroll per step
+                const delay = 100; // Delay between each scroll in milliseconds
+                const scrollHeight = document.documentElement.scrollHeight;
+                
+                while (document.documentElement.scrollTop + window.innerHeight < scrollHeight) {
+                    window.scrollBy(0, distance);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            });
+        };
+
+        // Scroll to the bottom of the page
+        await scrollToBottom();
+
         // Wait for the select element to load
         await page.waitForSelector('.multiselect__select');
   
@@ -33,7 +49,7 @@ async function scrapeData() {
         await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 2000))); // Wait for the content to load after selecting "ทั้งหมด"
   
         // Wait for the table to load
-        await page.waitForSelector('.table-responsive');
+        await page.waitForSelector('.table-responsive', { timeout: 60000 });
 
         // Get the page content
         const content = await page.content();
@@ -51,15 +67,11 @@ async function scrapeData() {
             const row = {
                 symbol: $(columns[0]).text().trim(),
                 open: $(columns[1]).text().trim(),
-                high: $(columns[2]).text().trim(),
-                low: $(columns[3]).text().trim(),
-                last: $(columns[4]).text().trim(),
+                last: $(columns[2]).text().trim(),
+                high: $(columns[3]).text().trim(),
+                low: $(columns[4]).text().trim(),
                 change: $(columns[5]).text().trim(),
                 percentChange: $(columns[6]).text().trim(),
-                bid: $(columns[7]).text().trim(),
-                offer: $(columns[8]).text().trim(),
-                volume: $(columns[9]).text().trim(),
-                value: $(columns[10]).text().trim()
             };
             data.push(row);
         });
@@ -114,7 +126,13 @@ const runWebScrape = async () => {
             return changeValue >= 0;
         }
 
-        if (!existingDate) {
+        const latestStock = await prisma.stock.findFirst({
+            orderBy: {
+                date: 'desc'
+            }
+        });
+
+        if (!existingDate && (latestStock.data != scrapeData.data)) {
             await prisma.stock.create({
                 data: {
                     date: scrappedData.date,
@@ -123,6 +141,8 @@ const runWebScrape = async () => {
             });
 
             for (const thisData of scrappedData.data) {
+
+                console.log(thisData);
     
                 const thisDataCount = await prisma.count.findFirst({
                     where: {
@@ -130,7 +150,7 @@ const runWebScrape = async () => {
                     }
                 });
     
-                if (checkChange(thisData.change)) {
+                if (checkChange(Number(thisData.last) - Number(thisData.open))) {
                     // ค่าบวก
                     if (thisDataCount) {
                         await prisma.count.delete({
