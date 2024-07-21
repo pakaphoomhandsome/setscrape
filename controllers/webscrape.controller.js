@@ -219,26 +219,28 @@ const notify = async () => {
     const filteredOver3Days = count.filter(e => e.count >= 3 && e.symbol !== '');
 
     if (filteredOver3Days.length > 0) {
+        // สร้างข้อความทั้งหมดที่ต้องการส่ง
         let message = `=== รายการแจ้งเตือนหุ้นติดลบ ประจำวันที่ ${new Date().toLocaleDateString()} ===\n\n`;
-        
+
+        let i = 0;
         for (const thisAlert of filteredOver3Days) {
             message += `- หุ้น ${thisAlert.symbol} ได้ติดต่อกันครบ ${thisAlert.count} ครั้ง\n`;
+            i++;
+
+            if (i === 20) {
+                await sendMsgController(message);
+                message = '';
+                i = 0;
+            }
         }
 
-        message += '\nกรุณาตรวจสอบรายการดังกล่าว';
-
-        const maxMessageLength = 2000; // ขีดจำกัดข้อความ LINE Notify
-        while (message.length > maxMessageLength) {
-            const part = message.substring(0, maxMessageLength);
-            await sendMsgController(part);
-            message = message.substring(maxMessageLength);
-        }
-        
-        if (message.length > 0) {
+        if (message !== '') {
             await sendMsgController(message);
         }
+
+        // ส่งข้อความเดียว
     }
-};
+}
 
 const runWebScrape = async () => {
     try {
