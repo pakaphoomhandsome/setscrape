@@ -57,6 +57,7 @@ cron.schedule('*/20 * * * * *', async () => {
     // await runWebScrape();
     console.log('Running a task every day at 1 AM');
 });
+
 const scrapeRouter = require("./routes/webscrape.route");
 
 
