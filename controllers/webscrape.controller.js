@@ -227,15 +227,13 @@ const notify = async () => {
 
         message += '\nกรุณาตรวจสอบรายการดังกล่าว';
 
-        // ตรวจสอบความยาวของข้อความและแบ่งข้อความหากจำเป็น
-        const maxMessageLength = 2000; // LINE limit ข้อความ 2000 ตัวอักษร
+        const maxMessageLength = 2000; // ขีดจำกัดข้อความ LINE Notify
         while (message.length > maxMessageLength) {
             const part = message.substring(0, maxMessageLength);
             await sendMsgController(part);
             message = message.substring(maxMessageLength);
         }
         
-        // ส่งข้อความที่เหลือ
         if (message.length > 0) {
             await sendMsgController(message);
         }
