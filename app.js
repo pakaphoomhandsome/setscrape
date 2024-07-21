@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 var cors = require('cors');
 app.use(cors({
-  origin: ["*", "http://localhost:3000"]
+  origin: ["*", "http://localhost:3000", "http://110.164.146.73:3000"]
 }));
 
 const cron = require("node-cron");
@@ -53,9 +53,9 @@ app.get('/welcome', async (req, res) => {
 
 const { runWebScrape } = require('./controllers/webscrape.controller');
 
-cron.schedule('*/20 * * * * *', async () => {
-    // await runWebScrape();
-    console.log('Running a task every day at 1 AM');
+cron.schedule('0 18 * * *', async () => {
+    await runWebScrape();
+    console.log('Running a task every day at 6 PM');
 });
 
 const scrapeRouter = require("./routes/webscrape.route");

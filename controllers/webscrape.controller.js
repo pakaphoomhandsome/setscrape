@@ -109,8 +109,8 @@ const test = async (req, res) => {
 
 const testNotify = async (req, res) => {
     try {
-        const scrappedData = await scrapeData();
-        res.status(200).json({ isError: false, scrappedData });
+        await notify();
+        res.status(200).json({ isError: false });
     } catch (err) {
         res.status(500).json({ isError: true, msg: 'Internal Server Error 500' });
         console.log(err);
