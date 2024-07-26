@@ -320,7 +320,7 @@ const runWebScrape = async () => {
             }
 
             message += '\nกรุณาตรวจสอบรายการดังกล่าว';
-            await sendMsgController(`ขณะนี้หุ้น ${thisData.symbol} พ้นจากการลบติดต่อกันแล้ว`);
+            await sendMsgController(message);
 
             await notify();
 
